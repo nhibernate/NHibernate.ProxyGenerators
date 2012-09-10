@@ -7,3 +7,11 @@ _ReSharper.*/
 /examples/src/**/obj/
 /examples/src/**/bin/
 /build/
+/examples/lib/ILMerge.exe
+/examples/lib/Iesi.Collections.dll
+/examples/lib/Iesi.Collections.license.txt
+/examples/lib/NHPG.exe
+/examples/lib/NHibernate.ProxyGenerators.dll
+/examples/lib/NHibernate.ProxyGenerators.license.txt
+/examples/lib/NHibernate.dll
+/examples/lib/NHibernate.license.txt
