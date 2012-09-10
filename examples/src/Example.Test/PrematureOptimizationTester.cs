@@ -78,8 +78,10 @@ namespace Example.Test
 			
 			if (useStaticProxies)
 			{
-				cfg.Properties["proxyfactory.factory_class"] = "CastleStaticProxyFactoryFactory, Example.Domain.Proxies";
+				cfg.Properties["proxyfactory.factory_class"] = "StaticProxyFactoryFactory, Example.Domain.Proxies";
 			}
+
+			cfg.Properties[NHibernate.Cfg.Environment.Hbm2ddlKeyWords] = "none";
 
 			cfg.AddAssembly(typeof(Person).Assembly);
 
