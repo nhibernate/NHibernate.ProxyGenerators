@@ -165,7 +165,7 @@ namespace NHibernate.ProxyGenerators.Default
 			const string assemblyName = "GeneratedAssembly";
 			var proxies = new Dictionary<string, System.Type>();
 
-			var assemblyBuilder = new SavingProxyAssemblyBuilder(assemblyName);
+			var assemblyBuilder = new SavingProxyAssemblyBuilder(assemblyName, modulePath);
 			try
 			{
 				GeneratorProxyFactoryFactory.ProxyFactory = new GeneratorProxyFactory(new ProxyFactory(assemblyBuilder), proxies);

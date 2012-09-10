@@ -12,10 +12,10 @@ namespace NHibernate.ProxyGenerators.Default
 		AssemblyBuilder assembly;
 		ModuleBuilder module;
 
-		public SavingProxyAssemblyBuilder(string assemblyName)
+		public SavingProxyAssemblyBuilder(string assemblyName, string assemblyFileName)
 		{
 			this.assemblyName = assemblyName;
-			assemblyFileName = string.Format("{0}.dll", assemblyName);
+			this.assemblyFileName = assemblyFileName;
 		}
 
 		public AssemblyBuilder DefineDynamicAssembly(AppDomain appDomain, AssemblyName name)
