@@ -4,4 +4,6 @@ AssemblyInfo.cs
 _ReSharper.*/
 /src/**/obj/
 /src/**/bin/
+/examples/src/**/obj/
+/examples/src/**/bin/
 /build/
