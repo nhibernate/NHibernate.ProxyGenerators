@@ -7,6 +7,7 @@ using NHibernate;
 using NHibernate.Bytecode;
 using NHibernate.Engine;
 using NHibernate.Proxy;
+using NHibernate.Proxy.DynamicProxy;
 using NHibernate.Type;
 using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 //[assembly: AssemblyVersion("{VERSION}")]
@@ -63,19 +64,9 @@ public class StaticProxyFactory : IProxyFactory
 		try
 		{
 			var initializer = new  DefaultLazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session);
-			var interceptors = new IInterceptor[] { initializer };
-
-			object[] args;
-			if (_isClassProxy)
-			{
-				args = new object[] { interceptors };
-			}
-			else
-			{
-				args = new object[] { interceptors, new object() };
-			}
-			var generatedProxy = Activator.CreateInstance(_proxyType, args);
-			proxy = (INHibernateProxy)generatedProxy;
+			var generatedProxy = (IProxy) Activator.CreateInstance(_proxyType);
+			generatedProxy.Interceptor = initializer;
+			proxy = (INHibernateProxy) generatedProxy;
 		}
 		catch (Exception e)
 		{
