@@ -22,7 +22,7 @@ namespace NHibernate.ProxyGenerators
 			Dialect = "NHibernate.Dialect.MsSql2005Dialect";
 		}
 
-		[Argument(ArgumentType.AtMostOnce, HelpText="The Proxy Generator to use.  One of [castle|activerecord] or Assembly Qualified Name", DefaultValue="castle", ShortName="g")]
+		[Argument(ArgumentType.AtMostOnce, HelpText="The Proxy Generator to use castle or Assembly Qualified Name", DefaultValue="castle", ShortName="g")]
 		public string Generator;
 
 		[Argument(ArgumentType.Required, HelpText = "Path to output assembly for generated proxies.  e.g. .\\OutputAssembly.dll", ShortName="o")]

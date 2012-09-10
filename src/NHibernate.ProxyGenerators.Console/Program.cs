@@ -92,9 +92,6 @@
 				case "castle":
 					assemblyQualifiedName = "NHibernate.ProxyGenerators.Castle.CastleProxyGenerator, NHibernate.ProxyGenerators.Castle";
 					break;
-				case "activerecord":
-					assemblyQualifiedName = "NHibernate.ProxyGenerators.ActiveRecord.ActiveRecordProxyGenerator, NHibernate.ProxyGenerators.ActiveRecord";
-					break;
 				default:
 					assemblyQualifiedName = generator;
 					break;

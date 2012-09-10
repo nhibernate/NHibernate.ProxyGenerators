@@ -27,12 +27,10 @@
 		<include name="NHibernate.ProxyGenerators/default.build" />
 		<include name="NHibernate.ProxyGenerators.Castle/default.build" />	
 		<include name="NHibernate.ProxyGenerators.Test2/default.build" />
-		<include name="NHibernate.ProxyGenerators.ActiveRecord/default.build" />
 		<include name="NHibernate.ProxyGenerators.Test/default.build" />
 		<include name="NHibernate.ProxyGenerators.Console/default.build" />
 		<include name="NHibernate.ProxyGenerators.Castle.Test/default.build" />
 		<include name="NHibernate.ProxyGenerators.Console.Test/default.build" />
-		<include name="NHibernate.ProxyGenerators.ActiveRecord.Test/default.build" />
 	</fileset>
 
 	<fileset id="buildfiles.tests" basedir="src">
@@ -40,7 +38,6 @@
 		<include name="NHibernate.ProxyGenerators.Test/default.build" />
 		<include name="NHibernate.ProxyGenerators.Castle.Test/default.build" />
 		<include name="NHibernate.ProxyGenerators.Console.Test/default.build" />
-		<include name="NHibernate.ProxyGenerators.ActiveRecord.Test/default.build" />
 	</fileset>
 
 	<target name="init" depends="common.init"
