@@ -141,7 +141,13 @@
 	<target name="common.run-tests"
 		description="Run NUnit tests">
 
-		<nunit2>
+		<call target="common.find-nunit" unless="${property::exists('nunit.found')}" />
+		<property name="common.run-tests.failonerror" value="${not property::exists(project::get-name() + '.IgnoreFail')}"/>
+		<exec program="${nunit-console}" failonerror="${common.run-tests.failonerror}">
+			<arg line="${bin.dir}/${project::get-name()}.dll /xml:${testresults.dir}/${project::get-name()}.dll-results.xml " />
+		</exec>
+
+<!--		<nunit2>
 			<formatter 
 				type="Xml" 
 				usefile="true" 
@@ -152,7 +158,7 @@
 				assemblyname="${bin.dir}/${project::get-name()}.dll"
 				appconfig="${bin.dir}/${project::get-name()}.dll.config" />
 		</nunit2>
-
+-->
 	</target>
 
  
