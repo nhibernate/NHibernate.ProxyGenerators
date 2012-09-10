@@ -113,6 +113,7 @@
 		depends="common.init common.set-assembly-attribute-values"
 		description="Generate AssemblyInfo.cs using assembly.* properties."
 	>
+		<mkdir dir="Properties" />	
 		<asminfo output="Properties\AssemblyInfo.cs" language="CSharp">
 			<imports>
 				<import namespace="System" />
