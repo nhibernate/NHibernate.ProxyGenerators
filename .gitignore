@@ -1,0 +1,7 @@
+*.user
+*.suo
+AssemblyInfo.cs
+_ReSharper.*/
+/src/**/obj/
+/src/**/bin/
+/build/
