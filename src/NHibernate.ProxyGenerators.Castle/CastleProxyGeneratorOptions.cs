@@ -26,11 +26,6 @@ namespace NHibernate.ProxyGenerators.Castle
 		[Argument(ArgumentType.AtMostOnce, HelpText = "Path to the intermediate file used to generate the Castle Proxy Factory", DefaultValue = "CastleStaticProxyFactory.dll", ShortName = "if")]
 		public string IntermediateCastleStaticProxyFactoryAssemblyPath;
 
-		private Assembly[] _inputAssemblies;
-		public Assembly[] InputAssemblies
-		{
-			get { return _inputAssemblies; }
-			set { _inputAssemblies = value; }
-		}
+	    public Assembly[] InputAssemblies { get; set; }
 	}
 }

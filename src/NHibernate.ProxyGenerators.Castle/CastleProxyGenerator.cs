@@ -1,3 +1,5 @@
+using NHibernate.Proxy.DynamicProxy;
+
 namespace NHibernate.ProxyGenerators.Castle
 {
 	using System;
@@ -9,10 +11,7 @@ namespace NHibernate.ProxyGenerators.Castle
 	using System.Text;
 	using Cache;
 	using Cfg;
-	using Dialect;
-	using global::Castle.DynamicProxy;
 	using ILMerging;
-	using Mapping;
 	using Microsoft.CSharp;
 
 	[Serializable]
@@ -41,7 +40,7 @@ namespace NHibernate.ProxyGenerators.Castle
 
 		public CastleProxyGeneratorOptions ValidateOptions(ProxyGeneratorOptions options)
 		{
-			CastleProxyGeneratorOptions castleOptions = options as CastleProxyGeneratorOptions;
+			var castleOptions = options as CastleProxyGeneratorOptions;
 
 			if (castleOptions == null) throw new ProxyGeneratorException("options must be of type {0}", typeof(CastleProxyGeneratorOptions).Name);
 
@@ -56,7 +55,7 @@ namespace NHibernate.ProxyGenerators.Castle
 
 			if (string.IsNullOrEmpty(castleOptions.IntermediateProxyAssemblyPath))
 			{
-				castleOptions.IntermediateProxyAssemblyPath = ModuleScope.DEFAULT_FILE_NAME;
+				castleOptions.IntermediateProxyAssemblyPath = "GeneratedAssembly.dll";
 			}
 
 			if (string.IsNullOrEmpty(castleOptions.IntermediateCastleStaticProxyFactoryAssemblyPath))
@@ -88,16 +87,16 @@ namespace NHibernate.ProxyGenerators.Castle
 			Configuration nhibernateConfiguration = CreateNHibernateConfiguration(inputAssemblies, options );
 			if (nhibernateConfiguration.ClassMappings.Count == 0) FailNoClassMappings(inputAssemblies);
 
-			GenerateProxiesResult proxyResult = GenerateProxies(nhibernateConfiguration, options.IntermediateProxyAssemblyPath);
+			var proxyResult = GenerateProxies(nhibernateConfiguration, options.IntermediateProxyAssemblyPath);
 
-			string staticProxyFactorySourceCode = GenerateStaticProxyFactorySourceCode(proxyResult.Proxies, inputAssemblies[0].GetName().Version);
+			var staticProxyFactorySourceCode = GenerateStaticProxyFactorySourceCode(proxyResult.Proxies, inputAssemblies[0].GetName().Version);
 
-			CompilerResults result = CompileStaticProxyFactory(nhibernateConfiguration, proxyResult.Assembly, staticProxyFactorySourceCode, options.IntermediateCastleStaticProxyFactoryAssemblyPath);
+			var result = CompileStaticProxyFactory(nhibernateConfiguration, proxyResult.Assembly, staticProxyFactorySourceCode, options.IntermediateCastleStaticProxyFactoryAssemblyPath);
 
 			if (result.Errors.HasErrors)
 			{
-				StringBuilder errors = new StringBuilder();
-				foreach (CompilerError error in result.Errors)
+				var errors = new StringBuilder();
+				foreach (var error in result.Errors)
 				{
 					errors.AppendLine(error.ToString());
 				}
@@ -138,21 +137,23 @@ namespace NHibernate.ProxyGenerators.Castle
 
 		protected virtual IDictionary<string, string> GetDefaultNHibernateProperties(ProxyGeneratorOptions options)
 		{
-			Dictionary<string, string> properties = new Dictionary<string, string>();
+			var properties = new Dictionary<string, string>();
 			properties["cache.provider_class"] = typeof(HashtableCacheProvider).AssemblyQualifiedName;
 			properties["dialect"] = options.Dialect;
 			properties["proxyfactory.factory_class"] = typeof(CastleProxyFactoryFactory).AssemblyQualifiedName;
+			properties["hbm2ddl.keywords"] = "none";
 			return properties;
 		}
 
 		protected virtual GenerateProxiesResult GenerateProxies(Configuration nhibernateConfiguration, string modulePath)
 		{
-			ModuleScope moduleScope = new ModuleScope(true, ModuleScope.DEFAULT_ASSEMBLY_NAME, modulePath, ModuleScope.DEFAULT_ASSEMBLY_NAME, modulePath );
-			IDictionary proxies = new Hashtable();
+			const string assemblyName = "GeneratedAssembly";
+			var proxies = new Hashtable();
 
+			var assemblyBuilder = new SavingProxyAssemblyBuilder(assemblyName);
 			try
 			{
-				CastleProxyFactoryFactory.ProxyFactory = new CastleProxyFactory(new DefaultProxyBuilder(moduleScope), proxies);
+				CastleProxyFactoryFactory.ProxyFactory = new CastleProxyFactory(new ProxyFactory(assemblyBuilder), proxies);
 				using (nhibernateConfiguration.BuildSessionFactory())
 				{
 				}
@@ -161,14 +162,11 @@ namespace NHibernate.ProxyGenerators.Castle
 			{
 				CastleProxyFactoryFactory.ProxyFactory = null;
 			}
+			assemblyBuilder.Save();
 
-			moduleScope.SaveAssembly();
-			moduleScope = null;
+			var proxyAssemblyName = new AssemblyName(assemblyName) { CodeBase = modulePath };
 
-			AssemblyName proxyAssemblyName = new AssemblyName(ModuleScope.DEFAULT_ASSEMBLY_NAME);
-			proxyAssemblyName.CodeBase = modulePath;
-
-			Assembly proxyAssembly = Assembly.Load(proxyAssemblyName);
+			var proxyAssembly = Assembly.Load(proxyAssemblyName);
 
 			return new GenerateProxiesResult(proxies, proxyAssembly);
 		}
@@ -211,31 +209,32 @@ namespace NHibernate.ProxyGenerators.Castle
 
 		protected virtual CompilerResults CompileStaticProxyFactory(Configuration nhibernateConfiguration, Assembly proxyAssembly, string sourceCode, string outputAssembly)
 		{
-			CompilerParameters parameters = new CompilerParameters();
-			parameters.OutputAssembly = outputAssembly;
-			parameters.WarningLevel = 4;
-			parameters.TreatWarningsAsErrors = true;
-			parameters.CompilerOptions = "/debug:pdbonly /optimize+";
+			var parameters = new CompilerParameters
+				{
+					OutputAssembly = outputAssembly,
+					WarningLevel = 4,
+					TreatWarningsAsErrors = true,
+					CompilerOptions = "/debug:pdbonly /optimize+"
+				};
 
-			List<Assembly> references = new List<Assembly>();
-			references.Add(Assembly.Load("NHibernate"));
-			references.Add(Assembly.Load("Iesi.Collections"));
-			references.Add(Assembly.Load("log4net"));
-			references.Add(Assembly.Load("Castle.Core"));
-			references.Add(Assembly.Load("NHibernate.ProxyGenerators.CastleDynamicProxy"));
-			references.Add(proxyAssembly);
+			var references = new List<Assembly>
+				{
+					Assembly.Load("NHibernate"),
+					Assembly.Load("Iesi.Collections"),
+					proxyAssembly
+				};
 
-			AssemblyName[] proxyReferencedAssemblyNames = proxyAssembly.GetReferencedAssemblies();
-			foreach( AssemblyName proxyReferencedAssemblyName in proxyReferencedAssemblyNames )
+			var proxyReferencedAssemblyNames = proxyAssembly.GetReferencedAssemblies();
+			foreach (var proxyReferencedAssemblyName in proxyReferencedAssemblyNames)
 			{
-				Assembly proxyReferencedAssembly = Assembly.Load(proxyReferencedAssemblyName);
-				if( !references.Contains(proxyReferencedAssembly) )
+				var proxyReferencedAssembly = Assembly.Load(proxyReferencedAssemblyName);
+				if (!references.Contains(proxyReferencedAssembly))
 				{
 					references.Add(proxyReferencedAssembly);
 				}
 			}
 
-			foreach (PersistentClass cls in nhibernateConfiguration.ClassMappings)
+			foreach (var cls in nhibernateConfiguration.ClassMappings)
 			{
 				if (!references.Contains(cls.MappedClass.Assembly))
 				{
@@ -243,23 +242,23 @@ namespace NHibernate.ProxyGenerators.Castle
 				}
 			}
 
-			foreach (Assembly assembly in references)
+			foreach (var assembly in references)
 			{
 				parameters.ReferencedAssemblies.Add(assembly.Location);
 			}
 
-			CSharpCodeProvider compiler = new CSharpCodeProvider();
+			var compiler = new CSharpCodeProvider(new Dictionary<String, String> { { "CompilerVersion", "v3.5" } });
 			return compiler.CompileAssemblyFromSource(parameters, sourceCode);
 		}
 
 		protected virtual void MergeStaticProxyFactoryWithProxies(Assembly staticProxyAssembly, Assembly proxyAssembly, Assembly[] referenceAssemblies, string outputPath)
 		{
-			ILMerge merger = new ILMerge();
+			var merger = new ILMerge();
 
-			List<string> searchDirectories = new List<string>(referenceAssemblies.Length);
-			foreach(Assembly referenceAssembly in referenceAssemblies )
+			var searchDirectories = new List<string>(referenceAssemblies.Length);
+			foreach(var referenceAssembly in referenceAssemblies )
 			{
-				string searchDirectory = Path.GetDirectoryName(referenceAssembly.Location);
+				var searchDirectory = Path.GetDirectoryName(referenceAssembly.Location);
 				if (!searchDirectories.Contains(searchDirectory))
 				{
 					searchDirectories.Add(searchDirectory);
@@ -267,7 +266,7 @@ namespace NHibernate.ProxyGenerators.Castle
 			}
 
 			merger.SetSearchDirectories(searchDirectories.ToArray());
-			merger.SetInputAssemblies(new string[] { staticProxyAssembly.Location, proxyAssembly.Location });
+			merger.SetInputAssemblies(new[] { staticProxyAssembly.Location, proxyAssembly.Location });
 			merger.OutputFile = outputPath;
 			merger.Merge();
 		}

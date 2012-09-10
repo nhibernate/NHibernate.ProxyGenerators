@@ -1,10 +1,11 @@
+using NHibernate.Proxy;
+
 namespace NHibernate.ProxyGenerators.Test
 {
 	using System;
 	using System.IO;
 	using System.Reflection;
 	using NUnit.Framework;
-	using Proxy;
 	using Test2;
 
 	[Serializable]

@@ -1,24 +1,28 @@
+using NHibernate.Bytecode;
+using NHibernate.Proxy;
+
 namespace NHibernate.ProxyGenerators.Castle
 {
-	using Bytecode;
-	using Proxy;
-
 	public class CastleProxyFactoryFactory : IProxyFactoryFactory
 	{
-		private static IProxyFactory _proxyFactory;
+	    public static IProxyFactory ProxyFactory { get; set; }
 
-		public static IProxyFactory ProxyFactory
-		{
-			get { return _proxyFactory; }
-			set { _proxyFactory = value; }
-		}
-
-		public IProxyFactory BuildProxyFactory()
+	    public IProxyFactory BuildProxyFactory()
 		{
 			return ProxyFactory;
 		}
 
-		public IProxyValidator ProxyValidator
+	    public bool IsInstrumented(System.Type entityClass)
+	    {
+	        return true;
+	    }
+
+	    public bool IsProxy(object entity)
+	    {
+	        return entity is INHibernateProxy;
+	    }
+
+	    public IProxyValidator ProxyValidator
 		{
 			get { return new DynProxyTypeValidator(); }
 		}

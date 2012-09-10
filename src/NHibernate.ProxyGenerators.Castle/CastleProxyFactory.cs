@@ -1,59 +1,60 @@
+using NHibernate.Mapping;
+using NHibernate.Proxy.DynamicProxy;
+
 namespace NHibernate.ProxyGenerators.Castle
 {
 	using System;
 	using System.Collections;
 	using System.Reflection;
 	using Engine;
-	using global::Castle.DynamicProxy;
 	using Iesi.Collections.Generic;
 	using Proxy;
 	using Type;
 
-	public class CastleProxyFactory : IProxyFactory
+	public class CastleProxyFactory :  IProxyFactory
 	{
-		private readonly IProxyBuilder _proxyBuilder;
-		private readonly IDictionary _proxies;
+        readonly ProxyFactory factory;
+		private readonly IDictionary proxies;
 
-		public CastleProxyFactory(IProxyBuilder proxyBuilder, IDictionary proxies)
+        public CastleProxyFactory(ProxyFactory factory, IDictionary proxies)
 		{
-			if (proxyBuilder == null)
+			if (factory == null)
 			{
-				throw new ArgumentNullException("proxyBuilder");
+				throw new ArgumentNullException("factory");
 			}
 			if (proxies == null)
 			{
 				throw new ArgumentNullException("proxies");
 			}
 
-			_proxyBuilder = proxyBuilder;
-			_proxies = proxies;
+			this.factory = factory;
+			this.proxies = proxies;
 		}
 
-		public void PostInstantiate(string entityName, Type persistentClass, ISet<Type> interfaces, MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, IAbstractComponentType componentIdType)
+	    public  void PostInstantiate(string entityName, Type persistentClass, ISet<Type> interfaces, MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, IAbstractComponentType componentIdType)
 		{
-			if (persistentClass.IsGenericType) return;
+	        if (persistentClass.IsGenericType) return;
 
-			int interfacesCount = interfaces.Count;
-			bool isClassProxy = interfacesCount == 1;
-			Type[] ifaces = new Type[interfacesCount];
-			interfaces.CopyTo(ifaces, 0);
+            var interfacesCount = interfaces.Count;
+	        var ifaces = new Type[interfacesCount];
+	        if (interfacesCount > 0)
+	            interfaces.CopyTo(ifaces, 0);
 
-			Type proxyType;
-			if (isClassProxy)
-			{
-				proxyType = _proxyBuilder.CreateClassProxy(persistentClass, ifaces, ProxyGenerationOptions.Default);
-			}
-			else
-			{
-				proxyType = _proxyBuilder.CreateInterfaceProxyTypeWithoutTarget(ifaces[0], ifaces, ProxyGenerationOptions.Default);
-			}
+		    var proxyType = ifaces.Length == 1
+                                ? factory.CreateProxyType(persistentClass, ifaces)
+                                : factory.CreateProxyType(ifaces[0], ifaces);
 
-			_proxies[entityName] = proxyType;
+			proxies[entityName] = proxyType;
 		}
 
-		public INHibernateProxy GetProxy(object id, ISessionImplementor session)
-		{
-			throw new NotImplementedException();
-		}
+	    public INHibernateProxy GetProxy(object id, ISessionImplementor session)
+	    {
+	        throw new NotImplementedException();
+	    }
+
+	    public object GetFieldInterceptionProxy(object instanceToWrap)
+	    {
+	        throw new NotImplementedException();
+	    }
 	}
 }

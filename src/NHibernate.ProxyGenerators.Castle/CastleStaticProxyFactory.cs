@@ -1,23 +1,20 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using System.Security;
 using Iesi.Collections.Generic;
-using log4net;
 using NHibernate;
 using NHibernate.Bytecode;
 using NHibernate.Engine;
 using NHibernate.Proxy;
-using NHibernate.ProxyGenerators.CastleDynamicProxy;
 using NHibernate.Type;
-using IInterceptor = Castle.Core.Interceptor.IInterceptor;
+using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 
 //[assembly: AssemblyVersion("{VERSION}")]
 //[assembly: AllowPartiallyTrustedCallers]
 
 public class CastleStaticProxyFactory : IProxyFactory
 {
-	private static readonly ILog _log;
+	private static readonly IInternalLogger _log;
 	private static readonly IDictionary _proxies;
 
 	private string _entityName;
@@ -32,7 +29,7 @@ public class CastleStaticProxyFactory : IProxyFactory
 
 	static CastleStaticProxyFactory()
 	{
-		_log = LogManager.GetLogger(typeof(CastleStaticProxyFactory));
+		_log = LoggerProvider.LoggerFor(typeof(CastleStaticProxyFactory));
 		_proxies = new Hashtable();
 		//{PROXIES}
 	}
@@ -68,9 +65,8 @@ public class CastleStaticProxyFactory : IProxyFactory
 		INHibernateProxy proxy;
 		try
 		{
-			object generatedProxy;
-			LazyInitializer initializer = new LazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session);
-			IInterceptor[] interceptors = new IInterceptor[] { initializer };
+			var initializer = new  DefaultLazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session);
+			var interceptors = new IInterceptor[] { initializer };
 
 			object[] args;
 			if (_isClassProxy)
@@ -81,19 +77,22 @@ public class CastleStaticProxyFactory : IProxyFactory
 			{
 				args = new object[] { interceptors, new object() };
 			}
-			generatedProxy = Activator.CreateInstance(_proxyType, args);
-
-			initializer._constructed = true;
+			var generatedProxy = Activator.CreateInstance(_proxyType, args);
 			proxy = (INHibernateProxy)generatedProxy;
 		}
 		catch (Exception e)
 		{
-			string message = "Creating a proxy instance failed";
+			const string message = "Creating a proxy instance failed";
 			_log.Error(message, e);
 			throw new HibernateException(message, e);
 		}
 
 		return proxy;
+	}
+
+	public object GetFieldInterceptionProxy(object instanceToWrap)
+	{
+		throw new NotSupportedException();
 	}
 }
 
@@ -102,6 +101,16 @@ public class CastleStaticProxyFactoryFactory : IProxyFactoryFactory
 	public IProxyFactory BuildProxyFactory()
 	{
 		return new CastleStaticProxyFactory();
+	}
+
+	public bool IsInstrumented(Type entityClass)
+	{
+		return true;
+	}
+
+	public bool IsProxy(object entity)
+	{
+		return entity is INHibernateProxy;
 	}
 
 	public IProxyValidator ProxyValidator

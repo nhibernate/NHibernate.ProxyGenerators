@@ -14,14 +14,10 @@
 		<property name="assembly.allow-partially-trusted-callers" value="true" />
 	 
 		<assemblyfileset id="project.references" basedir="${bin.dir}">
-			<include name="Castle.Core.dll" />
-			<include name="Castle.DynamicProxy2.dll" />
 			<include name="Iesi.Collections.dll" />
 			<include name="ILMerge.exe" />
-			<include name="log4net.dll" />
 			<include name="NHibernate.dll" />
 			<include name="NHibernate.ProxyGenerators.dll" />
-			<include name="NHibernate.ProxyGenerators.CastleDynamicProxy.dll" />
 			<include name="System.dll" />
 		</assemblyfileset>
 
