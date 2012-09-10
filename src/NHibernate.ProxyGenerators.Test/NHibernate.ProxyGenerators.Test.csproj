@@ -61,9 +61,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Default\DefaultProxyGeneratorTester.cs" />
     <Compile Include="ProxyGeneratorTester.cs" />
     <Compile Include="Person.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

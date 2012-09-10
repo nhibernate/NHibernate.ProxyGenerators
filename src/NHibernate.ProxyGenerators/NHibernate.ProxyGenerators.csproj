@@ -53,11 +53,25 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Iesi.Collections">
+      <HintPath>..\..\lib\Iesi.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="ILMerge">
+      <HintPath>..\..\lib\ILMerge.exe</HintPath>
+    </Reference>
+    <Reference Include="NHibernate">
+      <HintPath>..\..\lib\NHibernate.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyResolver.cs" />
     <Compile Include="CrossAppDomainCaller.cs" />
+    <Compile Include="Default\GeneratorProxyFactory.cs" />
+    <Compile Include="Default\GeneratorProxyFactoryFactory.cs" />
+    <Compile Include="Default\DefaultProxyGenerator.cs" />
+    <EmbeddedResource Include="Default\StaticProxyFactory.cs" />
+    <Compile Include="Default\SavingProxyAssemblyBuilder.cs" />
     <Compile Include="IProxyGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyGeneratorException.cs" />

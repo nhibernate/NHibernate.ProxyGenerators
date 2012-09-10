@@ -1,22 +1,21 @@
-namespace NHibernate.ProxyGenerators.Castle.Test
-{
-	using System;
-	using System.Reflection;
-	using ProxyGenerators.Test;
-	using NUnit.Framework;
+using System;
+using NHibernate.ProxyGenerators.Default;
+using NUnit.Framework;
 
+namespace NHibernate.ProxyGenerators.Test.Default
+{
 	[TestFixture]
 	[Serializable]
-	public class CastleProxyGeneratorTester : ProxyGeneratorTester
+	public class DefaultProxyGeneratorTester : ProxyGeneratorTester
 	{
 		protected override IProxyGenerator CreateGenerator()
 		{
-			return new CastleProxyGenerator();
+			return new DefaultProxyGenerator();
 		}
 
 		protected override ProxyGeneratorOptions CreateOptions(string outputAssemblyPath, params string[] inputAssembilyPaths)
 		{
-			return new CastleProxyGeneratorOptions(outputAssemblyPath, inputAssembilyPaths);
+			return new ProxyGeneratorOptions(outputAssemblyPath, inputAssembilyPaths);
 		}
 
 		[Test]
@@ -37,14 +36,14 @@ namespace NHibernate.ProxyGenerators.Castle.Test
 		[ExpectedException(typeof(ProxyGeneratorException))]
 		public void InputAssemblies_Cannot_Be_Null()
 		{
-			_generator.Generate(CreateOptions("C:\\Test.dll", null));
+			_generator.Generate(CreateOptions("OutputAssembly.dll", null));
 		}
 
 		[Test]
 		[ExpectedException(typeof(ProxyGeneratorException))]
 		public void At_Least_One_InputAssembly_Is_Required()
 		{
-			_generator.Generate(CreateOptions("C:\\Test.dll", new string[0]));
+			_generator.Generate(CreateOptions("OutputAssembly.dll", new string[0]));
 		}
 
 		[Test]
@@ -55,7 +54,7 @@ namespace NHibernate.ProxyGenerators.Castle.Test
 			ProxyGeneratorException exc = null;
 			try
 			{
-				_generator.Generate(CreateOptions("C:\\Test.dll", inputAssemblyLocation));	
+				_generator.Generate(CreateOptions("OutputAssembly.dll", inputAssemblyLocation));	
 			}
 			catch(Exception e)
 			{

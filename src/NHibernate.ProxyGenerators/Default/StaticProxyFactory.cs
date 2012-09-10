@@ -1,6 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Security;
 using Iesi.Collections.Generic;
 using NHibernate;
 using NHibernate.Bytecode;
@@ -8,37 +9,36 @@ using NHibernate.Engine;
 using NHibernate.Proxy;
 using NHibernate.Type;
 using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
-
 //[assembly: AssemblyVersion("{VERSION}")]
-//[assembly: AllowPartiallyTrustedCallers]
+//[assembly: System.Security.AllowPartiallyTrustedCallers]
 
-public class CastleStaticProxyFactory : IProxyFactory
+public class StaticProxyFactory : IProxyFactory
 {
 	private static readonly IInternalLogger _log;
-	private static readonly IDictionary _proxies;
+	private static readonly Dictionary<string, System.Type> _proxies;
 
 	private string _entityName;
-	private Type _persistentClass;
-	private Type[] _interfaces;
+	private System.Type _persistentClass;
+	private System.Type[] _interfaces;
 	private MethodInfo _getIdentifierMethod;
 	private MethodInfo _setIdentifierMethod;
 	private IAbstractComponentType _componentIdType;
 	private bool _isClassProxy;
 	private string _proxyKey;
-	private Type _proxyType;
+	private System.Type _proxyType;
 
-	static CastleStaticProxyFactory()
+	static StaticProxyFactory()
 	{
-		_log = LoggerProvider.LoggerFor(typeof(CastleStaticProxyFactory));
-		_proxies = new Hashtable();
+		_log = LoggerProvider.LoggerFor(typeof(StaticProxyFactory));
+		_proxies = new Dictionary<string, System.Type>();
 		//{PROXIES}
 	}
 
-	public void PostInstantiate(string entityName, Type persistentClass, ISet<Type> interfaces, MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, IAbstractComponentType componentIdType)
+	public void PostInstantiate(string entityName, System.Type persistentClass, ISet<System.Type> interfaces, MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, IAbstractComponentType componentIdType)
 	{
 		_entityName = entityName;
 		_persistentClass = persistentClass;
-		_interfaces = new Type[interfaces.Count];
+		_interfaces = new System.Type[interfaces.Count];
 		interfaces.CopyTo(_interfaces, 0);
 		_getIdentifierMethod = getIdentifierMethod;
 		_setIdentifierMethod = setIdentifierMethod;
@@ -47,17 +47,14 @@ public class CastleStaticProxyFactory : IProxyFactory
 
 		_proxyKey = entityName;
 
-		if( _proxies.Contains(_proxyKey) )
+		if (!_proxies.TryGetValue(_proxyKey, out _proxyType))
 		{
-			_proxyType = _proxies[_proxyKey] as Type;
-			_log.DebugFormat("Using proxy type '{0}' for persistent class '{1}'", _proxyType.Name, _persistentClass.FullName);
-		}
-		else
-		{
-			string message = string.Format("No proxy type found for persistent class '{0}' using proxy key '{1}'", _persistentClass.FullName, _proxyKey);
+			var message = string.Format("No proxy type found for persistent class '{0}' using proxy key '{1}'", _persistentClass.FullName, _proxyKey);
 			_log.Error(message);
 			throw new HibernateException(message);
 		}
+		
+		_log.DebugFormat("Using proxy type '{0}' for persistent class '{1}'", _proxyType.Name, _persistentClass.FullName);
 	}
 
 	public INHibernateProxy GetProxy(object id, ISessionImplementor session)
@@ -95,15 +92,15 @@ public class CastleStaticProxyFactory : IProxyFactory
 		throw new NotSupportedException();
 	}
 }
-
-public class CastleStaticProxyFactoryFactory : IProxyFactoryFactory
+	
+public class StaticProxyFactoryFactory : IProxyFactoryFactory
 {
 	public IProxyFactory BuildProxyFactory()
 	{
-		return new CastleStaticProxyFactory();
+		return new StaticProxyFactory();
 	}
 
-	public bool IsInstrumented(Type entityClass)
+	public bool IsInstrumented(System.Type entityClass)
 	{
 		return true;
 	}

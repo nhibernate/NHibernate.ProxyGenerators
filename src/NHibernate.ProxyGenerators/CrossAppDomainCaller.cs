@@ -23,8 +23,8 @@ namespace NHibernate.ProxyGenerators
 	{
 		public static void RunInOtherAppDomain(Action<object[]> callback, params object[] args)
 		{
-			CrossAppDomainCaller callbackObject = new CrossAppDomainCaller(callback, args);
-			AppDomain newDomain = AppDomain.CreateDomain("otherDomain", AppDomain.CurrentDomain.Evidence, AppDomain.CurrentDomain.SetupInformation);
+			var callbackObject = new CrossAppDomainCaller(callback, args);
+			var newDomain = AppDomain.CreateDomain("otherDomain", AppDomain.CurrentDomain.Evidence, AppDomain.CurrentDomain.SetupInformation);
 			try
 			{
 				newDomain.DoCallBack(callbackObject.Run);

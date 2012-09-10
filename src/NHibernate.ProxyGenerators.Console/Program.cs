@@ -1,24 +1,15 @@
 ﻿namespace NHibernate.ProxyGenerators.Console
 {
 	using System;
-	using System.Collections.Generic;
 	using System.IO;
-	using System.Reflection;
-	using System.Text;
 
 	public class Program
 	{
-		private IProxyGenerator _proxyGenerator;
+		public IProxyGenerator ProxyGenerator { get; set; }
 
-		public IProxyGenerator ProxyGenerator
+		public int Execute(TextWriter error, params string[] args )
 		{
-			get { return _proxyGenerator; }
-			set { _proxyGenerator = value; }
-		}
-
-		public int Execute( TextWriter error, params string[] args )
-		{
-			ProxyGeneratorOptions generatorOptions = new ProxyGeneratorOptions();
+			var generatorOptions = new ProxyGeneratorOptions();
 			if (Parser.ParseHelp(args))
 			{
 				Parser.ParseArguments(args, generatorOptions);
@@ -29,11 +20,11 @@
 				return Error.InvalidArguments;
 			}
 
-			if (_proxyGenerator == null)
+			if (ProxyGenerator == null)
 			{
 				try
 				{
-					_proxyGenerator = CreateProxyGenerator(generatorOptions.Generator);
+					ProxyGenerator = CreateProxyGenerator(generatorOptions.Generator);
 				}
 				catch (Exception exc)
 				{
@@ -42,10 +33,10 @@
 				}
 			}
 
-			generatorOptions = _proxyGenerator.GetOptions();
+			generatorOptions = ProxyGenerator.GetOptions();
 			if( generatorOptions == null )
 			{
-				error.WriteLine("{0}.GetOptions() returned null.  Please use a different Generator.", _proxyGenerator.GetType().FullName);
+				error.WriteLine("{0}.GetOptions() returned null.  Please use a different Generator.", ProxyGenerator.GetType().FullName);
 				return Error.InvalidGenerator;
 			}
 
@@ -62,7 +53,7 @@
 
 			try
 			{
-				_proxyGenerator.Generate(generatorOptions);
+				ProxyGenerator.Generate(generatorOptions);
 			}
 			catch (Exception exc)
 			{
@@ -76,26 +67,14 @@
 
 		public static void Main(string[] args)
 		{
-			Program program = new Program();
+			var program = new Program();
 			int exitCode = program.Execute(Console.Error, args);
 			Environment.Exit(exitCode);
 		}
 
-		
-
 		public static IProxyGenerator CreateProxyGenerator(string generator)
 		{
-			string assemblyQualifiedName;
-
-			switch (generator.ToLowerInvariant())
-			{
-				case "castle":
-					assemblyQualifiedName = "NHibernate.ProxyGenerators.Castle.CastleProxyGenerator, NHibernate.ProxyGenerators.Castle";
-					break;
-				default:
-					assemblyQualifiedName = generator;
-					break;
-			}
+			var assemblyQualifiedName = ProxyGeneratorAssemblyQualifiedName(generator);
 
 			try
 			{
@@ -105,7 +84,7 @@
 					throw new ProxyGeneratorException("Invalid Generator Type '{0}'", assemblyQualifiedName);
 				}
 
-				IProxyGenerator proxyGenerator = Activator.CreateInstance(proxyGeneratorType) as IProxyGenerator;
+				var proxyGenerator = Activator.CreateInstance(proxyGeneratorType) as IProxyGenerator;
 				if( proxyGenerator == null )
 				{
 					throw new ProxyGeneratorException("Generator Type does not implement IProxyGenerator '{0}'", proxyGeneratorType.AssemblyQualifiedName);
@@ -119,7 +98,16 @@
 			}
 		}
 
-		
+		static string ProxyGeneratorAssemblyQualifiedName(string generator)
+		{
+			switch (generator.ToLowerInvariant())
+			{
+				case "default":
+					return "NHibernate.ProxyGenerators.Default.DefaultProxyGenerator, NHibernate.ProxyGenerators";
+				default:
+					return generator;
+			}
+		}
 	}
 
 	public static class Error

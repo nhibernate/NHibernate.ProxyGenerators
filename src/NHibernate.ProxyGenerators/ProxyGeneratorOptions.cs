@@ -1,17 +1,30 @@
+using System;
+using System.Reflection;
+
 namespace NHibernate.ProxyGenerators
 {
-	using System;
-	using System.Reflection;
-
 	[Serializable]
 	public class ProxyGeneratorOptions
 	{
-		public ProxyGeneratorOptions()
-		{
-		}
+		[Argument(ArgumentType.AtMostOnce, HelpText = "The dialect to use. Only needed when you use dialect specific mapping options (like sequences in Oracle).", DefaultValue = "NHibernate.Dialect.MsSql2008Dialect", ShortName = "d")]
+		public string Dialect = "NHibernate.Dialect.MsSql2008Dialect";
 
-		public ProxyGeneratorOptions(string outputAssemblyPath)
-			: this(outputAssemblyPath, null)
+		[Argument(ArgumentType.AtMostOnce, HelpText = "The Proxy Generator to use default or Assembly Qualified Name", DefaultValue = "default", ShortName = "g")]
+		public string Generator = "default";
+
+		[DefaultArgument(ArgumentType.MultipleUnique, HelpText = "Path to assembly(ies) containing NHibernate Class Mappings")]
+		public string[] InputAssemblyPaths;
+
+		[Argument(ArgumentType.AtMostOnce, HelpText = "Path to the intermediate file used to generate the proxies", DefaultValue = "GeneratedProxies.dll", ShortName = "ip")]
+		public string IntermediateProxyAssemblyPath = "GeneratedProxies.dll";
+
+		[Argument(ArgumentType.AtMostOnce, HelpText = "Path to the intermediate file used to generate the Proxy Factory", DefaultValue = "StaticProxyFactory.dll", ShortName = "if")]
+		public string IntermediateStaticProxyFactoryAssemblyPath = "StaticProxyFactory.dll";
+
+		[Argument(ArgumentType.Required, HelpText = "Path to output assembly for generated proxies.  e.g. .\\OutputAssembly.dll", ShortName = "o")]
+		public string OutputAssemblyPath;
+
+		public ProxyGeneratorOptions()
 		{
 		}
 
@@ -19,19 +32,8 @@ namespace NHibernate.ProxyGenerators
 		{
 			OutputAssemblyPath = outputAssemblyPath;
 			InputAssemblyPaths = inputAssemblyPaths;
-			Dialect = "NHibernate.Dialect.MsSql2005Dialect";
 		}
 
-		[Argument(ArgumentType.AtMostOnce, HelpText="The Proxy Generator to use castle or Assembly Qualified Name", DefaultValue="castle", ShortName="g")]
-		public string Generator;
-
-		[Argument(ArgumentType.Required, HelpText = "Path to output assembly for generated proxies.  e.g. .\\OutputAssembly.dll", ShortName="o")]
-		public string OutputAssemblyPath;
-
-		[DefaultArgument(ArgumentType.MultipleUnique, HelpText = "Path to assembly(ies) containing NHibernate Class Mappings")]
-		public string[] InputAssemblyPaths;
-
-		[Argument(ArgumentType.AtMostOnce, HelpText = "The dialect to use. Only needed when you use dialect specific mapping options (like sequences in Oracle).", DefaultValue = "NHibernate.Dialect.MsSql2005Dialect", ShortName = "d")]
-		public string Dialect;
+		public Assembly[] InputAssemblies { get; set; }
 	}
 }

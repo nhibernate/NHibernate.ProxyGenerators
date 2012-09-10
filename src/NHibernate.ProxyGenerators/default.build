@@ -15,17 +15,22 @@
 	 
 		<assemblyfileset id="project.references" basedir="${bin.dir}">
 			<include name="System.dll" />
+			<include name="Iesi.Collections.dll" />
+			<include name="NHibernate.dll" />
+			<include name="ILMerge.exe" />
 		</assemblyfileset>
 
 		<resourcefileset id="project.resources" prefix="NHibernate.ProxyGenerators" dynamicprefix="true">
 			<include name="*.xsd" />
 			<include name="**/*.xml" />
 			<exclude name="bin/**/*.xml" />
-		</resourcefileset>
-		
-		<fileset id="project.sources">
+      <include name="Default/StaticProxyFactory.cs" />
+    </resourcefileset>
+
+    <fileset id="project.sources">
 			<include name="**/*.cs" />
-		</fileset>
+      <exclude name="Default/StaticProxyFactory.cs" />
+    </fileset>
 	</target>
 
 	<target name="generate-assemblyinfo" depends="init common.generate-assemblyinfo" />
