@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Full" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\tools\CommunityTasks</MSBuildCommunityTasksPath>
+    <SolutionDir>$(MSBuildProjectDirectory)</SolutionDir>
+    <ProjectPath>NHibernate.ProxyGenerators.nuspec</ProjectPath>
+	</PropertyGroup>
+
+	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"/>
+
+  <PropertyGroup>
+		<Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+
+		<ArtifactPath>$(MSBuildProjectDirectory)\release</ArtifactPath>
+    <Copyright>Copyright (c) NHibernate Community 2011 - $([System.DateTime]::UtcNow.Year)</Copyright>
+  </PropertyGroup>
+
+  <Target Name="Full" DependsOnTargets="Init; Build; TestAll; BuildPackage"/>
+
+	<Target Name="Init">
+		<MakeDir Directories="$(ArtifactPath)" Condition="!Exists('$(ArtifactPath)')"/>
+	</Target>
+
+  <Target Name="Build">
+    <AssemblyInfo CodeLanguage="CS"
+      OutputFile="src\CommonAssemblyInfo.cs"
+      AssemblyProduct="NHibernate.ProxyGenerators"
+      AssemblyCompany ="NHibernate.info"
+      AssemblyCopyright="$(Copyright)"
+      CLSCompliant="false"
+      AssemblyVersion="$([System.Text.RegularExpressions.Regex]::Match(`$(Version)`, `\d+\.\d+\.\d+`))"
+      AssemblyFileVersion="$([System.Text.RegularExpressions.Regex]::Match(`$(Version)`, `\d+\.\d+\.\d+`))"
+      AssemblyInformationalVersion="$(Version)"
+    />
+
+    <MSBuild Projects="NHibernate.ProxyGenerators.sln" Targets="Clean;Build" Properties="Configuration=$(Configuration)"/>
+	</Target>
+
+	<Target Name="TestAll">
+    <PropertyGroup>
+      <NunitConsole>$(MSBuildProjectDirectory)\packages\NUnit.Runners.2.6.4\tools\nunit-console.exe</NunitConsole>
+    </PropertyGroup>
+    <ItemGroup>
+      <TestFile Include="NHibernate.ProxyGenerators.Test;NHibernate.ProxyGenerators.Console.Test" />
+    </ItemGroup>
+		<Exec Command="&quot;$(NunitConsole)&quot; &quot;$(MSBuildProjectDirectory)\src\%(TestFile.Identity)\bin\$(Configuration)\%(TestFile.Identity).dll&quot; /framework=net-4.0" />
+	</Target>
+
+  <Target Name="BuildPackage" DependsOnTargets="NuGetPack; ZipPackage;" />
+  <Target Name="NuGetPack">
+    <ItemGroup>
+      <NuGetPackProperty Include="Version">
+        <Value>$(Version)</Value>
+      </NuGetPackProperty>
+      <NuGetPackProperty Include="Copyright">
+        <Value>$(Copyright)</Value>
+      </NuGetPackProperty>
+      <NuGetPackProperty Include="Configuration">
+        <Value>$(Configuration)</Value>
+      </NuGetPackProperty>
+      <NuGetPackProperties Include="%(NuGetPackProperty.Identity)=&quot;%(NuGetPackProperty.Value)&quot;"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <NuGetExePath>.nuget\NuGet.exe</NuGetExePath>
+      <NuGetCommand Condition="'$(OS)' == 'Windows_NT'">"$(NuGetExePath)"</NuGetCommand> 
+      <NuGetCommand Condition="'$(OS)' != 'Windows_NT' ">mono --runtime=v4.0.30319 "$(NuGetExePath)"</NuGetCommand>
+      <NuGetPackProperties>
+        @(NuGetPackProperties)
+      </NuGetPackProperties>
+    </PropertyGroup>
+    <Exec Command="$(NuGetCommand) pack &quot;NHibernate.ProxyGenerators.nuspec&quot; -NoPackageAnalysis -Properties @(NuGetPackProperties) -OutputDirectory &quot;$(ArtifactPath)&quot;" />
+
+  </Target>
+  <Target Name="ZipPackage">
+<!--    <ItemGroup>-->
+<!--      <SourceFiles Include="src\NHibernate.ProxyGenerators.Console\bin\$(Configuration)\*.*"/>-->
+<!--    </ItemGroup>-->
+<!--    <Zip Files="@(SourceFiles)" ZipFileName="$(ArtifactPath)\NHibernate.ProxyGenerators.$(Version).zip" />-->
+  </Target>
+</Project>

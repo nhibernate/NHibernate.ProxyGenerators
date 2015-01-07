@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NHibernate.ProxyGenerators</id>
+    <version>$version$</version>
+    <authors>NHibernate Community</authors>
+    <owners>NHibernate Community</owners>
+    <licenseUrl>https://github.com/nhibernate/NHibernate.ProxyGenerators/blob/master/lgpl.txt</licenseUrl>
+    <projectUrl>https://github.com/nhibernate/NHibernate.ProxyGenerators</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Console runner for NHibernate.ProxyGenerators.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>NHibernate Proxy ProxyGenerator</tags>
+  </metadata>
+  <files>
+    <file src="lgpl.txt" target="tools\NHibernate.ProxyGenerators.license.txt" />
+    <file src="src\NHibernate.ProxyGenerators.Console\bin\$configuration$\*.*" target="tools\" />
+  </files>
+</package>
