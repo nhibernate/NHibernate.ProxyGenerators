@@ -2,9 +2,11 @@
 <project 
 	name="NHibernate" 
 	default="build"
-	xmlns="http://nant.sf.net/release/0.85-rc3/nant.xsd"
+	xmlns="http://nant.sf.net/release/0.91/nant.xsd"
 >
-	<property name="root.dir" value="." />
+  <loadtasks assembly="C:/Program Files/nantcontrib/bin/NAnt.Contrib.Tasks.dll" />
+
+  <property name="root.dir" value="." />
 	<include buildfile="${root.dir}/build-common/common.xml" />
 	<property name="lib.dir" value="${root.dir}/lib" />
 	<property name="doc.dir" value="${root.dir}/doc" /> 
@@ -62,9 +64,10 @@
 		depends="init prepare-build-directory"
 		description="Builds NHibernate in the current configuration">
 
-		<nant target="build">
-			<buildfiles refid="buildfiles.all" />
-		</nant>
+    <msbuild ></msbuild>
+<!--		<nant target="build">-->
+<!--			<buildfiles refid="buildfiles.all" />-->
+<!--		</nant>-->
 
 	</target>
 

@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Full" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\tools\CommunityTasks</MSBuildCommunityTasksPath>
+	</PropertyGroup>
+
+	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"/>
+
+  
+	<PropertyGroup>
+		<Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+		<nunit-console>$(MSBuildProjectDirectory)\packages\NUnit.Runners.2.6.4\tools\nunit-console.exe</nunit-console>
+
+		<artifactPath>$(MSBuildProjectDirectory)\release</artifactPath>
+
+		<corePath>$(MSBuildProjectDirectory)\src\Maybe</corePath>
+		<coreFile>Hazzik.Maybe</coreFile>
+
+<!--		<testFile>NHibernate.ProxyGenerators.Test</testFile>-->
+<!--		<testPath>$(MSBuildProjectDirectory)\src\NHibernate.ProxyGenerators.Test</testPath>-->
+	</PropertyGroup>
+
+
+	<Target Name="Full" DependsOnTargets="Init; Build; TestAll; Deploy"/>
+
+	<Target Name="Init">
+		<MakeDir Directories="$(artifactPath)" Condition="!Exists('$(artifactPath)')"/>
+	</Target>
+
+<!--  [assembly: CLSCompliantAttribute(true)]-->
+<!--  [assembly: AssemblyTitleAttribute("NHibernate.ProxyGenerators")]-->
+<!--  [assembly: AssemblyDescriptionAttribute("A utility for pre-generating lazy-loading proxies for NHibernate.")]-->
+<!--  [assembly: AssemblyCompanyAttribute("NHibernate.org")]-->
+<!--  [assembly: AssemblyProductAttribute("NHibernate.ProxyGenerators")]-->
+<!--  [assembly: AssemblyCopyrightAttribute("Licensed under LGPL.")]-->
+<!--  [assembly: AssemblyVersionAttribute("1.0.0.2001")]-->
+<!--  [assembly: AssemblyInformationalVersionAttribute("1.0.0.2001")]-->
+<!--  [assembly: AssemblyFileVersionAttribute("1.0.0.2001")]-->
+<!--  [assembly: AssemblyDelaySignAttribute(false)]-->
+
+  <Target Name="Build">
+    <AssemblyInfo CodeLanguage="CS"
+      OutputFile="src\CommonAssemblyInfo.cs"
+      AssemblyProduct="NHibernate.ProxyGenerators"
+      AssemblyCompany ="NHibernate.info"
+      AssemblyCopyright="Copyright © NHibernate Community 2011 - $([System.DateTime]::UtcNow.Year)"
+      CLSCompliant="false"
+      AssemblyVersion="$(Version)"
+      AssemblyFileVersion="$(Version)"/>
+
+    <MSBuild Projects="NHibernate.ProxyGenerators.sln" Targets="Clean;Build" Properties="Configuration=$(Configuration)"/>
+	</Target>
+
+	<Target Name="TestAll"> 
+    <ItemGroup>
+      <TestFile Include="NHibernate.ProxyGenerators.Test;NHibernate.ProxyGenerators.Console.Test" />
+    </ItemGroup>
+		<Exec Command="&quot;$(nunit-console)&quot; &quot;$(MSBuildProjectDirectory)\src\%(TestFile.Identity)\bin\$(Configuration)\%(TestFile.Identity).dll&quot; /framework=net-4.0" />
+	</Target>
+
+	<Target Name="Deploy">
+		<ItemGroup>
+			<nupkg Include="$(corePath)\bin\$(Configuration)\*.nupkg" />
+		</ItemGroup>
+		<Copy SourceFiles="@(nupkg)" DestinationFolder="$(artifactPath)"/>
+	</Target>
+</Project>
