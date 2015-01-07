@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NHibernate.Proxy;
 
 namespace NHibernate.ProxyGenerators.Test
@@ -35,18 +37,9 @@ namespace NHibernate.ProxyGenerators.Test
 
 				Assert.IsNotNull(proxyAssembly);
 
-				Type personProxyType = null;
-				foreach (Type type in proxyAssembly.GetTypes())
-				{
-					if (type.BaseType == personType)
-					{
-						personProxyType = type;
-						break;
-					}
-				}
+                Type personProxyType = proxyAssembly.GetTypes().FirstOrDefault(type => type.BaseType == personType);
 
-
-				Assert.IsNotNull(personProxyType);
+                Assert.IsNotNull(personProxyType);
 
 				Assert.IsTrue(typeof(INHibernateProxy).IsAssignableFrom(personProxyType));
 			});
@@ -65,7 +58,7 @@ namespace NHibernate.ProxyGenerators.Test
 
 				Type personProxyType = null;
 				Type addressProxyType = null;
-				foreach (Type type in proxyAssembly.GetTypes())
+                foreach (Type type in proxyAssembly.GetTypes())
 				{
 					if (type.BaseType == personType)
 					{
@@ -101,23 +94,15 @@ namespace NHibernate.ProxyGenerators.Test
 
 				Assert.IsNotNull(proxyAssembly);
 
-				Type userProxyType = null;
-				foreach (Type type in proxyAssembly.GetTypes())
-				{
-					if (type.BaseType == userType)
-					{
-						userProxyType = type;
-						break;
-					}
-				}
+				Type userProxyType = proxyAssembly.GetTypes().FirstOrDefault(type => type != null && type.BaseType == userType);
 
-				Assert.IsNotNull(userProxyType);
+			    Assert.IsNotNull(userProxyType);
 
 				Assert.IsTrue(typeof(INHibernateProxy).IsAssignableFrom(userProxyType));
 			});
 		}
 
-		[TearDown]
+	    [TearDown]
 		public virtual void TearDown()
 		{
 			if( File.Exists(_outputAssemblyPath) )

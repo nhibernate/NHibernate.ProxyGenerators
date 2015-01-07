@@ -12,6 +12,7 @@ using NHibernate.Type;
 using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 //[assembly: AssemblyVersion("{VERSION}")]
 //[assembly: System.Security.AllowPartiallyTrustedCallers]
+//[assembly: SecurityRules(SecurityRuleSet.Level1)]
 
 public class StaticProxyFactory : IProxyFactory
 {
@@ -64,9 +65,9 @@ public class StaticProxyFactory : IProxyFactory
 		try
 		{
 			var initializer = new  DefaultLazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session);
-			var generatedProxy = (IProxy) Activator.CreateInstance(_proxyType);
-			generatedProxy.Interceptor = initializer;
-			proxy = (INHibernateProxy) generatedProxy;
+		    var generatedProxy = (IProxy) Activator.CreateInstance(_proxyType);
+		    generatedProxy.Interceptor = initializer;
+		    proxy = (INHibernateProxy) generatedProxy;
 		}
 		catch (Exception e)
 		{

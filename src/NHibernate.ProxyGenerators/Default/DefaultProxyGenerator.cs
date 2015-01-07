@@ -2,9 +2,10 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using ILMerging;
+using ILRepacking;
 using Microsoft.CSharp;
 using NHibernate.Cache;
 using NHibernate.Cfg;
@@ -17,14 +18,14 @@ namespace NHibernate.ProxyGenerators.Default
 	{
 		public Assembly Generate(ProxyGeneratorOptions options)
 		{
-			var castleOptions = ValidateOptions(options);
+			ValidateOptions(options);
 			try
 			{
-				CrossAppDomainCaller.RunInOtherAppDomain(Generate, this, castleOptions);
+				CrossAppDomainCaller.RunInOtherAppDomain(Generate, this, options);
 			}
 			finally
 			{
-				CleanUpIntermediateFiles(castleOptions);
+				CleanUpIntermediateFiles(options);
 			}
 
 			return Assembly.LoadFrom(options.OutputAssemblyPath);
@@ -70,10 +71,11 @@ namespace NHibernate.ProxyGenerators.Default
 					CompilerOptions = "/debug:pdbonly /optimize+"
 				};
 
-			var references = new List<Assembly>
+			var references = new HashSet<Assembly>
 				{
-					Assembly.Load("NHibernate"),
+					Assembly.Load("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
 					Assembly.Load("Iesi.Collections"),
+					Assembly.Load("NHibernate"),
 					proxyAssembly
 				};
 
@@ -81,18 +83,12 @@ namespace NHibernate.ProxyGenerators.Default
 			foreach (var proxyReferencedAssemblyName in proxyReferencedAssemblyNames)
 			{
 				var proxyReferencedAssembly = Assembly.Load(proxyReferencedAssemblyName);
-				if (!references.Contains(proxyReferencedAssembly))
-				{
-					references.Add(proxyReferencedAssembly);
-				}
+				references.Add(proxyReferencedAssembly);
 			}
 
 			foreach (var cls in nhibernateConfiguration.ClassMappings)
 			{
-				if (!references.Contains(cls.MappedClass.Assembly))
-				{
-					references.Add(cls.MappedClass.Assembly);
-				}
+				references.Add(cls.MappedClass.Assembly);
 			}
 
 			foreach (var assembly in references)
@@ -100,7 +96,7 @@ namespace NHibernate.ProxyGenerators.Default
 				parameters.ReferencedAssemblies.Add(assembly.Location);
 			}
 
-			var compiler = new CSharpCodeProvider(new Dictionary<String, String> { { "CompilerVersion", "v3.5" } });
+			var compiler = new CSharpCodeProvider(new Dictionary<String, String> { { "CompilerVersion", "v4.0" } });
 			return compiler.CompileAssemblyFromSource(parameters, sourceCode);
 		}
 
@@ -206,20 +202,17 @@ namespace NHibernate.ProxyGenerators.Default
 
 		protected virtual void MergeStaticProxyFactoryWithProxies(Assembly staticProxyAssembly, Assembly proxyAssembly, Assembly[] referenceAssemblies, string outputPath)
 		{
-			var merger = new ILMerge();
-
-			var searchDirectories = new List<string>(referenceAssemblies.Length);
 			foreach (var referenceAssembly in referenceAssemblies)
 			{
-				var searchDirectory = Path.GetDirectoryName(referenceAssembly.Location);
-				if (!searchDirectories.Contains(searchDirectory))
-				{
-					searchDirectories.Add(searchDirectory);
-				}
+				Console.WriteLine(referenceAssembly);
 			}
+			var merger = new ILRepack();
 
-			merger.SetSearchDirectories(searchDirectories.ToArray());
-			merger.SetInputAssemblies(new[] { staticProxyAssembly.Location, proxyAssembly.Location });
+			var searchDirectories = referenceAssemblies.Select(a => Path.GetDirectoryName(a.Location))
+				.Distinct()
+				.ToArray();
+			merger.SetSearchDirectories(searchDirectories);
+			merger.SetInputAssemblies(new[] {staticProxyAssembly.Location, proxyAssembly.Location});
 			merger.OutputFile = outputPath;
 			merger.Merge();
 		}
@@ -228,9 +221,7 @@ namespace NHibernate.ProxyGenerators.Default
 		{
 			var proxyCode = new StringBuilder();
 			foreach (var entry in proxies)
-			{
 				proxyCode.AppendFormat("\t\t_proxies[\"{0}\"] = typeof({1});\r\n", entry.Key, entry.Value.Name);
-			}
 			return proxyCode.ToString();
 		}
 
@@ -255,25 +246,19 @@ namespace NHibernate.ProxyGenerators.Default
 			}
 		}
 
-		static ProxyGeneratorOptions ValidateOptions(ProxyGeneratorOptions options)
+		private static void ValidateOptions(ProxyGeneratorOptions options)
 		{
-			var castleOptions = options;
+			if (options == null) 
+				throw new ProxyGeneratorException("options must be of type {0}", typeof (ProxyGeneratorOptions).Name);
 
-			if (castleOptions == null) throw new ProxyGeneratorException("options must be of type {0}", typeof (ProxyGeneratorOptions).Name);
+			if (string.IsNullOrEmpty(options.OutputAssemblyPath)) 
+				throw new ProxyGeneratorException("options.OutputAssemblyPath is Required");
 
-			if (string.IsNullOrEmpty(castleOptions.OutputAssemblyPath)) throw new ProxyGeneratorException("options.OutputAssemblyPath is Required");
+			if (!Path.IsPathRooted(options.OutputAssemblyPath))
+				options.OutputAssemblyPath = Path.GetFullPath(options.OutputAssemblyPath);
 
-			if (!Path.IsPathRooted(castleOptions.OutputAssemblyPath))
-			{
-				castleOptions.OutputAssemblyPath = Path.GetFullPath(castleOptions.OutputAssemblyPath);
-			}
-
-			if (castleOptions.InputAssemblyPaths == null || castleOptions.InputAssemblyPaths.Length == 0)
-			{
+			if (options.InputAssemblyPaths == null || options.InputAssemblyPaths.Length == 0)
 				throw new ProxyGeneratorException("At least one input assembly is required");
-			}
-
-			return castleOptions;
 		}
 
 		protected class GenerateProxiesResult
