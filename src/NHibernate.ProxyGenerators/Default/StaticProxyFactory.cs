@@ -9,6 +9,7 @@ using NHibernate.Engine;
 using NHibernate.Proxy;
 using NHibernate.Proxy.DynamicProxy;
 using NHibernate.Type;
+using NHibernate.Util;
 using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 //[assembly: AssemblyVersion("{VERSION}")]
 //[assembly: System.Security.AllowPartiallyTrustedCallers]
@@ -28,6 +29,7 @@ public class StaticProxyFactory : IProxyFactory
 	private bool _isClassProxy;
 	private string _proxyKey;
 	private System.Type _proxyType;
+	bool _overridesEquals;
 
 	static StaticProxyFactory()
 	{
@@ -46,7 +48,7 @@ public class StaticProxyFactory : IProxyFactory
 		_setIdentifierMethod = setIdentifierMethod;
 		_componentIdType = componentIdType;
 		_isClassProxy = _interfaces.Length == 1;
-
+		_overridesEquals = ReflectHelper.OverridesEquals(persistentClass);
 		_proxyKey = entityName;
 
 		if (!_proxies.TryGetValue(_proxyKey, out _proxyType))
@@ -64,10 +66,10 @@ public class StaticProxyFactory : IProxyFactory
 		INHibernateProxy proxy;
 		try
 		{
-			var initializer = new  DefaultLazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session);
-		    var generatedProxy = (IProxy) Activator.CreateInstance(_proxyType);
-		    generatedProxy.Interceptor = initializer;
-		    proxy = (INHibernateProxy) generatedProxy;
+			var initializer = new  DefaultLazyInitializer(_entityName, _persistentClass, id, _getIdentifierMethod, _setIdentifierMethod, _componentIdType, session, _overridesEquals);
+			var generatedProxy = (IProxy) Activator.CreateInstance(_proxyType);
+			generatedProxy.Interceptor = initializer;
+			proxy = (INHibernateProxy) generatedProxy;
 		}
 		catch (Exception e)
 		{
