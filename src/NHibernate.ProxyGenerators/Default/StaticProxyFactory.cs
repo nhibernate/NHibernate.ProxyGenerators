@@ -10,6 +10,7 @@ using NHibernate.Proxy;
 using NHibernate.Proxy.DynamicProxy;
 using NHibernate.Type;
 using NHibernate.Util;
+using NHibernate.Intercept;
 using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 //[assembly: AssemblyVersion("{VERSION}")]
 //[assembly: System.Security.AllowPartiallyTrustedCallers]
@@ -19,6 +20,7 @@ public class StaticProxyFactory : IProxyFactory
 {
 	private static readonly IInternalLogger _log;
 	private static readonly Dictionary<string, System.Type> _proxies;
+	private readonly ProxyFactory _factory = new ProxyFactory();
 
 	private string _entityName;
 	private System.Type _persistentClass;
@@ -83,7 +85,8 @@ public class StaticProxyFactory : IProxyFactory
 
 	public object GetFieldInterceptionProxy(object instanceToWrap)
 	{
-		throw new NotSupportedException();
+		var interceptor = new DefaultDynamicLazyFieldInterceptor();
+		return _factory.CreateProxy(_persistentClass, interceptor, new[] { typeof(IFieldInterceptorAccessor) });
 	}
 }
 	
