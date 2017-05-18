@@ -24,6 +24,9 @@ namespace NHibernate.ProxyGenerators
 		[Argument(ArgumentType.Required, HelpText = "Path to output assembly for generated proxies.  e.g. .\\OutputAssembly.dll", ShortName = "o")]
 		public string OutputAssemblyPath;
 
+		[Argument(ArgumentType.MultipleUnique, HelpText = "Full Type name for fluent conventions.  e.g. My.Fluent.Conventions, MyAssembly", ShortName = "c")]
+		public string[] FluentConventions;
+
 		public ProxyGeneratorOptions()
 		{
 		}
