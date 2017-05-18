@@ -89,6 +89,12 @@ namespace NHibernate.ProxyGenerators.Default
 			foreach (var cls in nhibernateConfiguration.ClassMappings)
 			{
 				references.Add(cls.MappedClass.Assembly);
+				foreach (var mapReferenceAssemblyName in cls.MappedClass.Assembly.GetReferencedAssemblies())
+				{
+					var mapReferenceAssembly = Assembly.Load(mapReferenceAssemblyName);
+					references.Add(mapReferenceAssembly);
+				}
+
 			}
 
 			foreach (var assembly in references)
