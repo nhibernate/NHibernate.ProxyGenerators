@@ -104,8 +104,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Iesi.Collections" Version="4.0.1.4000" />
-    <PackageReference Include="NHibernate" Version="4.1.1.4000" />
     <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

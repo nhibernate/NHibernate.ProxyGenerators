@@ -17,7 +17,7 @@ using IInterceptor = NHibernate.Proxy.DynamicProxy.IInterceptor;
 
 public class StaticProxyFactory : IProxyFactory
 {
-	private static readonly IInternalLogger _log;
+	private static readonly INHibernateLogger _log;
 	private static readonly Dictionary<string, System.Type> _proxies;
 
 	private string _entityName;
@@ -33,7 +33,7 @@ public class StaticProxyFactory : IProxyFactory
 
 	static StaticProxyFactory()
 	{
-		_log = LoggerProvider.LoggerFor(typeof(StaticProxyFactory));
+		_log = NHibernateLogger.For(typeof(StaticProxyFactory));
 		_proxies = new Dictionary<string, System.Type>();
 		//{PROXIES}
 	}
@@ -58,7 +58,7 @@ public class StaticProxyFactory : IProxyFactory
 			throw new HibernateException(message);
 		}
 		
-		_log.DebugFormat("Using proxy type '{0}' for persistent class '{1}'", _proxyType.Name, _persistentClass.FullName);
+		_log.Debug("Using proxy type '{0}' for persistent class '{1}'", _proxyType.Name, _persistentClass.FullName);
 	}
 
 	public INHibernateProxy GetProxy(object id, ISessionImplementor session)
@@ -74,7 +74,7 @@ public class StaticProxyFactory : IProxyFactory
 		catch (Exception e)
 		{
 			const string message = "Creating a proxy instance failed";
-			_log.Error(message, e);
+			_log.Error(e, message);
 			throw new HibernateException(message, e);
 		}
 
