@@ -1,26 +1,24 @@
+using NSubstitute;
+
 namespace NHibernate.ProxyGenerators.Console.Test
 {
 	using System.IO;
 	using NUnit.Framework;
-	using Rhino.Mocks;
 
 	[TestFixture]
 	public class ProgramTester
 	{
 		private StringWriter _error;
 		private Program _program;
-		private MockRepository _mocks;
 		private IProxyGenerator _generator;
 
 		[SetUp]
 		public void SetUp()
 		{
 			_error = new StringWriter();
-			_mocks = new MockRepository();
 
-			_generator = _mocks.DynamicMock<IProxyGenerator>();
-			SetupResult.For(_generator.GetOptions())
-				.Return(new ProxyGeneratorOptions());
+			_generator = Substitute.For<IProxyGenerator>();
+			_generator.GetOptions().Returns(new ProxyGeneratorOptions());
 
 			_program = new Program();
 			_program.ProxyGenerator = _generator;
@@ -48,17 +46,11 @@ namespace NHibernate.ProxyGenerators.Console.Test
 		[Test]
 		public void Valid_Options_Generates_Proxies()
 		{
-			SetupResult.For(_generator.Generate(null))
-				.IgnoreArguments()
-				.Return(null);
-
-			_mocks.ReplayAll();
-
 			int exitCode = _program.Execute(_error, "/o:Output.dll", typeof(string).Assembly.Location);
 
 			Assert.AreEqual(Error.None, exitCode);
 
-			_mocks.VerifyAll();
+			_generator.ReceivedWithAnyArgs().Generate(null);
 		}
 
 		private string GetErrors()

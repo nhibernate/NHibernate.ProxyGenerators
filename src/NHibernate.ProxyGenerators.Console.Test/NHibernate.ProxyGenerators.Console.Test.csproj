@@ -92,8 +92,8 @@
   <ItemGroup>
     <PackageReference Include="Iesi.Collections" Version="4.0.1.4000" />
     <PackageReference Include="NHibernate" Version="4.1.1.4000" />
+    <PackageReference Include="NSubstitute" Version="5.0.0" />
     <PackageReference Include="NUnit" Version="2.6.4" />
-    <PackageReference Include="RhinoMocks" Version="3.6.1" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
